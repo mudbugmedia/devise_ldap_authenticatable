@@ -33,11 +33,13 @@ module Devise
           self.password = new_password
           self.password_confirmation = new_password_confirmation
 
-          Devise::LDAP::Adapter.update_password(login_with, new_password) && Devise::LDAP::Adapter.unlock_account(login_with) && save if valid?
-        else
-          errors.add(:password)
-          false
+          if valid? && Devise::LDAP::Adapter.update_password(login_with, new_password) && Devise::LDAP::Adapter.unlock_account(login_with)
+            return clear_reset_password_token && save
+          end
         end
+
+        errors.add(:password)
+        false
       end
 
       def password=(new_password)
