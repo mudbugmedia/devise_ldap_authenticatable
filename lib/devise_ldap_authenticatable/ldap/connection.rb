@@ -133,6 +133,18 @@ module Devise
         update_ldap(nsaccountlock: false)
       end
 
+      def create_user!(attributes)
+        dn = attributes.delete(:dn)
+
+        add_ldap('user', dn, attributes) if dn
+      end
+
+      def create_group!(attributes)
+        dn = attributes.delete(:dn)
+
+        add_ldap('group', dn, attributes) if dn
+      end
+
       def in_required_groups?
         return true unless @check_group_membership || @check_group_membership_without_admin
 
@@ -268,21 +280,33 @@ module Devise
         ldap.search(:base => dn, :scope => Net::LDAP::SearchScope_BaseObject).try(:first)
       end
 
+      def privileged_ldap
+        @privileged_ldap ||= begin
+          if ::Devise.ldap_use_admin_to_bind
+            Connection.admin
+          else
+            authenticate!
+            self.ldap
+          end
+        end
+      end
+
+      def add_ldap(type, dn, attributes)
+        DeviseLdapAuthenticatable::Logger.send("Adding #{type} #{dn}")
+
+        privileged_ldap.add(dn: dn, attributes: attributes)
+      end
+
+
       def update_ldap(ops)
         operations = []
+
         if ops.is_a? Hash
           ops.each do |key,value|
             operations << [:replace,key,value]
           end
         elsif ops.is_a? Array
           operations = ops
-        end
-
-        if ::Devise.ldap_use_admin_to_bind
-          privileged_ldap = Connection.admin
-        else
-          authenticate!
-          privileged_ldap = self.ldap
         end
 
         DeviseLdapAuthenticatable::Logger.send("Modifying user #{dn}")
