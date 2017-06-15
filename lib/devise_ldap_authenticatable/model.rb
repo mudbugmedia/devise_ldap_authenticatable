@@ -119,7 +119,6 @@ module Devise
         def update_with_password(resource)
           puts "UPDATE_WITH_PASSWORD: #{resource.inspect}"
         end
-
       end
     end
   end
