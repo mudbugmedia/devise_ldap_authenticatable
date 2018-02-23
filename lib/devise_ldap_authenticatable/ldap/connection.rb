@@ -145,6 +145,18 @@ module Devise
         add_ldap('group', dn, attributes) if dn
       end
 
+      def delete_user!(attributes)
+        dn = attributes.delete(:dn)
+
+        delete_ldap('user', dn) if dn
+      end
+
+      def delete_group!(attributes)
+        dn = attributes.delete(:dn)
+
+        delete_ldap('group', dn) if dn
+      end
+
       def in_required_groups?
         return true unless @check_group_membership || @check_group_membership_without_admin
 
@@ -297,6 +309,11 @@ module Devise
         privileged_ldap.add(dn: dn, attributes: attributes)
       end
 
+      def delete_ldap(type, dn)
+        DeviseLdapAuthenticatable::Logger.send("Deleting #{type} #{dn}")
+
+        privileged_ldap.delete(dn: dn)
+      end
 
       def update_ldap(ops)
         operations = []
