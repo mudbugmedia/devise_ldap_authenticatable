@@ -51,6 +51,22 @@ module Devise
         resource.create_group!(attributes)
       end
 
+      def self.delete_user(attributes)
+        options = {:ldap_auth_username_builder => ::Devise.ldap_auth_username_builder,
+                   :admin => ::Devise.ldap_use_admin_to_bind}
+
+        resource = Devise::LDAP::Connection.new(options)
+        resource.delete_user!(attributes)
+      end
+
+      def self.delete_group(attributes)
+        options = {:ldap_auth_username_builder => ::Devise.ldap_auth_username_builder,
+                   :admin => ::Devise.ldap_use_admin_to_bind}
+
+        resource = Devise::LDAP::Connection.new(options)
+        resource.delete_group!(attributes)
+      end
+
       def self.unlock_account(login)
         options = {:login => login,
                    :ldap_auth_username_builder => ::Devise.ldap_auth_username_builder,
